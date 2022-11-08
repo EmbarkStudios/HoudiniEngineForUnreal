@@ -3655,31 +3655,53 @@ FHoudiniEngineUtils::HapiSetAttributeInt64Data(
 
 	HAPI_Result Result = HAPI_RESULT_FAILURE;
 	int32 ChunkSize = THRIFT_MAX_CHUNKSIZE / InAttributeInfo.tupleSize;
+    // On Linux int64 is long long, while HAPI_Int64 is long. Therefore we need to convert `InInt64Data`.
+#if PLATFORM_LINUX
+	TArray<HAPI_Int64> HAPIInt64Values;
+	HAPIInt64Values.SetNumZeroed(InAttributeInfo.count);
+	for (int32 n = 0; n < HAPIInt64Values.Num(); n++)
+		HAPIInt64Values[n] = (int64)InInt64Data[n];
+#endif
 	if (InAttributeInfo.count > ChunkSize)
 	{
 		// Send the attribte in chunks
 		for (int32 ChunkStart = 0; ChunkStart < InAttributeInfo.count; ChunkStart += ChunkSize)
 		{
 			int32 CurCount = InAttributeInfo.count - ChunkStart > ChunkSize ? ChunkSize : InAttributeInfo.count - ChunkStart;
-
+#if PLATFORM_LINUX
+			Result = FHoudiniApi::SetAttributeInt64Data(
+				FHoudiniEngine::Get().GetSession(),
+				InNodeId, InPartId, TCHAR_TO_ANSI(*InAttributeName),
+				&InAttributeInfo, HAPIInt64Values.GetData(),
+				ChunkStart, CurCount);
+#else
 			Result = FHoudiniApi::SetAttributeInt64Data(
 				FHoudiniEngine::Get().GetSession(),
 				InNodeId, InPartId, TCHAR_TO_ANSI(*InAttributeName),
 				&InAttributeInfo, InInt64Data,
 				ChunkStart, CurCount);
-
+#endif
 			if (Result != HAPI_RESULT_SUCCESS)
 				break;
 		}
 	}
 	else
 	{
+#if PLATFORM_LINUX
+		// Send all the attribute values once
+		Result = FHoudiniApi::SetAttributeInt64Data(
+			FHoudiniEngine::Get().GetSession(),
+			InNodeId, InPartId, TCHAR_TO_ANSI(*InAttributeName),
+			&InAttributeInfo, HAPIInt64Values.GetData(),
+			0, InAttributeInfo.count);
+#else
 		// Send all the attribute values once
 		Result = FHoudiniApi::SetAttributeInt64Data(
 			FHoudiniEngine::Get().GetSession(),
 			InNodeId, InPartId, TCHAR_TO_ANSI(*InAttributeName),
 			&InAttributeInfo, InInt64Data,
 			0, InAttributeInfo.count);
+#endif
 	}
 
 	return Result;
