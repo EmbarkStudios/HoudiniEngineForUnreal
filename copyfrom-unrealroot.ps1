@@ -9,7 +9,7 @@ $pluginName = "HoudiniEngine"
 
 $pluginRoot = join-path $ueroot "Engine\Plugins\Runtime\$pluginName"
 
-$files = git ls-tree -r --name-only embark
+$files = git ls-tree -r --name-only embark-5.2
 $files | ForEach-Object {
 	$dest = $_
 	$src = (join-path $pluginRoot $dest)

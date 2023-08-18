@@ -8,7 +8,7 @@ param (
 $pluginName = "HoudiniEngine"
 $pluginRoot = join-path $ueroot "Engine\Plugins\Runtime\$pluginName"
 
-$files = (git ls-tree -r --name-only embark) | Select-String "\.ps1$" -NotMatch
+$files = (git ls-tree -r --name-only embark-5.2) | Select-String "\.ps1$" -NotMatch
 $files | ForEach-Object {
 	$src = $_
 	if (test-path $src -PathType Leaf) {
