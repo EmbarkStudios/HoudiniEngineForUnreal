@@ -134,7 +134,7 @@ SHoudiniNodeTreeViewItem::Construct(const FArguments& InArgs, const TSharedRef<S
 	
 	const FSlateBrush* ClassIcon = nullptr;
 	if (HoudiniNodeInfo->NodeType.Equals("OBJ"))
-		ClassIcon = bExpanded ? FAppStyle::GetBrush("Icons.FolderOpen") : FAppStyle::GetBrush("Icons.FolderClosed");
+		ClassIcon = bExpanded ? FAppStyle::Get().GetBrush("Icons.FolderOpen") : FAppStyle::Get().GetBrush("Icons.FolderClosed");
 	else
 		ClassIcon = FSlateIconFinder::FindIconBrushForClass(AActor::StaticClass());
 
@@ -173,7 +173,7 @@ SHoudiniNodeTreeViewItem::Construct(const FArguments& InArgs, const TSharedRef<S
 		[
 			SNew(SImage)
 			.Image(ClassIcon)
-			.Visibility(ClassIcon != FAppStyle::GetDefaultBrush() ? EVisibility::Visible : EVisibility::Collapsed)
+			.Visibility(ClassIcon != FAppStyle::Get().GetDefaultBrush() ? EVisibility::Visible : EVisibility::Collapsed)
 		]
 
 		+ SHorizontalBox::Slot()
