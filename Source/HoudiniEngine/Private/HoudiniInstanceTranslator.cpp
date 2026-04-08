@@ -660,7 +660,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 	if (InstanceObject->IsA<UFoliageType>() || Instancers.Settings.bIsFoliage)
 	{
 		// We must test for foliage type first, or FT will be considered as meshes
-		InstancerType = Foliage;
+		InstancerType = InstancerComponentType::Foliage;
 	}
 	else if(InstanceObject->IsA<UStaticMesh>())
 	{
@@ -684,24 +684,24 @@ FHoudiniInstanceTranslator::CreateInstancer(
 		}
 
 		if(Instancers.Settings.bForceHISM)
-			InstancerType = HierarchicalInstancedStaticMeshComponent;
+			InstancerType = InstancerComponentType::HierarchicalInstancedStaticMeshComponent;
 		else if (!bNaniteEnabled && (bMustUseInstancerComponent && StaticMesh->GetNumLODs() > 1))
-			InstancerType = HierarchicalInstancedStaticMeshComponent;
+			InstancerType = InstancerComponentType::HierarchicalInstancedStaticMeshComponent;
 		else if (bMustUseInstancerComponent)
-			InstancerType = InstancedStaticMeshComponent;
+			InstancerType = InstancerComponentType::InstancedStaticMeshComponent;
 		else
-			InstancerType = StaticMeshComponent;
+			InstancerType = InstancerComponentType::StaticMeshComponent;
 	}
 	else if (InstanceObject->IsA<UHoudiniStaticMesh>())
 	{
 		if (Instancers.AttributeIndices.Num() == 1)
 		{
-			InstancerType = HoudiniStaticMeshComponent;
+			InstancerType = InstancerComponentType::HoudiniStaticMeshComponent;
 		}
 		else 
 		{
 			HOUDINI_LOG_ERROR(TEXT("More than one instance transform encountered for UHoudiniStaticMesh: %s"), *(InstanceObject->GetPathName()));
-			InstancerType = Invalid;
+			InstancerType = InstancerComponentType::Invalid;
 			return {};
 		}
 	}
@@ -712,11 +712,11 @@ FHoudiniInstanceTranslator::CreateInstancer(
 			HOUDINI_LOG_ERROR(TEXT("Cannot use a level instance as foliage"));
 			return {};
 		}
-		InstancerType = LevelInstance;
+		InstancerType = InstancerComponentType::LevelInstance;
 	}
 	else
 	{
-		InstancerType = HoudiniInstancedActorComponent;
+		InstancerType = InstancerComponentType::HoudiniInstancedActorComponent;
 	}
 
 	bool bCheckRenderState = false;
@@ -724,8 +724,8 @@ FHoudiniInstanceTranslator::CreateInstancer(
 
 	switch (InstancerType)
 	{
-		case InstancedStaticMeshComponent:
-		case HierarchicalInstancedStaticMeshComponent:
+		case InstancerComponentType::InstancedStaticMeshComponent:
+		case InstancerComponentType::HierarchicalInstancedStaticMeshComponent:
 		{
 			// Create an Instanced Static Mesh Component
 			bSuccess = CreateInstancedStaticMeshInstancer(
@@ -740,7 +740,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 		}
 		break;
 
-		case HoudiniInstancedActorComponent:
+		case InstancerComponentType::HoudiniInstancedActorComponent:
 		{
 			bSuccess = CreateInstancedActorInstancer(
 				Output,
@@ -751,7 +751,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 		}
 		break;
 
-		case StaticMeshComponent:
+		case InstancerComponentType::StaticMeshComponent:
 		{
 			// Create a Static Mesh Component
 			bSuccess = CreateStaticMeshInstancer(
@@ -765,7 +765,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 		}
 		break;
 
-		case HoudiniStaticMeshComponent:
+		case InstancerComponentType::HoudiniStaticMeshComponent:
 		{
 			// Create a Houdini Static Mesh Component
 			bSuccess = CreateHoudiniStaticMeshInstancer(
@@ -778,7 +778,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 		}
 		break;
 
-		case Foliage:
+		case InstancerComponentType::Foliage:
 		{
 			bSuccess = CreateFoliageInstancer(
 				Id,
@@ -792,7 +792,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 
 		}
 		break;
-		case LevelInstance:
+		case InstancerComponentType::LevelInstance:
 		{
 			// Create a Houdini Static Mesh Component
 			bSuccess = CreateLevelInstanceInstancer(
@@ -840,7 +840,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 
 		NewComponentToSet->SetMobility(ParentComponent->Mobility);
 
-		if (InstancerType != Foliage && InstancerType != LevelInstance)
+		if (InstancerType != InstancerComponentType::Foliage && InstancerType != InstancerComponentType::LevelInstance)
 		    NewComponentToSet->AttachToComponent(ParentComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	    // Only register if we have a valid component
@@ -922,7 +922,7 @@ FHoudiniInstanceTranslator::CreateInstancer(
 	Output.HLODLayers = Instancers.Settings.HLODLayers;
 
 	// For Houdini Mesh Proxy - we need to make sure the HSMC is only set on the output's proxy component
-	if (InstancerType == HoudiniStaticMeshComponent && Output.ProxyComponent != nullptr)
+	if (InstancerType == InstancerComponentType::HoudiniStaticMeshComponent && Output.ProxyComponent != nullptr)
 	{
 		Output.OutputComponents.Empty();
 	}
@@ -954,7 +954,7 @@ FHoudiniInstanceTranslator::CreateInstancedStaticMeshInstancer(
 		ComponentOuter = ParentComponent->GetOwner();
 
 	UInstancedStaticMeshComponent* InstancedStaticMeshComponent = nullptr;
-	if(InstancerType == HierarchicalInstancedStaticMeshComponent)
+	if(InstancerType == InstancerComponentType::HierarchicalInstancedStaticMeshComponent)
 	{
 		// Use Hierarchical ISMC
 		// Either forced, or if the mesh isn't Nanite and has LODs

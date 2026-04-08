@@ -42,7 +42,7 @@ class UHoudiniStaticMesh;
 class UHoudiniInstancedActorComponent;
 struct FHoudiniPackageParams;
 
-enum InstancerComponentType
+enum class InstancerComponentType
 {
 	Invalid = -1,
 	InstancedStaticMeshComponent = 0,
